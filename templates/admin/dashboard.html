@@ -1,0 +1,139 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-1"><i class="fas fa-cog me-2"></i>Admin Dashboard</h1>
+        <p class="text-muted">System administration and user management</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card primary">
+            <h5><i class="fas fa-users me-2"></i>Total Users</h5>
+            <h2>{{ stats.total_users }}</h2>
+            <p>Registered users</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card success">
+            <h5><i class="fas fa-check-circle me-2"></i>Active Users</h5>
+            <h2>{{ stats.active_users }}</h2>
+            <p>Currently active</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card danger">
+            <h5><i class="fas fa-user-slash me-2"></i>Inactive Users</h5>
+            <h2>{{ stats.inactive_users }}</h2>
+            <p>Deactivated</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card info">
+            <h5><i class="fas fa-lock me-2"></i>Total Roles</h5>
+            <h2>{{ stats.total_roles }}</h2>
+            <p>Available roles</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Menu -->
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mb-3"><i class="fas fa-toolbox me-2"></i>Administration Tools</h4>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('admin.user_list') }}" class="card card-primary border-0 text-decoration-none text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1"><i class="fas fa-users me-2"></i>User Management</h5>
+                        <p class="text-muted small mb-0">Create, edit, and manage user accounts</p>
+                    </div>
+                    <i class="fas fa-arrow-right" style="font-size: 1.5rem; color: #2563eb;"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('admin.role_list') }}" class="card card-success border-0 text-decoration-none text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1"><i class="fas fa-lock me-2"></i>Role Management</h5>
+                        <p class="text-muted small mb-0">Configure roles and permissions</p>
+                    </div>
+                    <i class="fas fa-arrow-right" style="font-size: 1.5rem; color: #10b981;"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('admin.settings') }}" class="card card-info border-0 text-decoration-none text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1"><i class="fas fa-sliders-h me-2"></i>Settings</h5>
+                        <p class="text-muted small mb-0">Configure system settings</p>
+                    </div>
+                    <i class="fas fa-arrow-right" style="font-size: 1.5rem; color: #0891b2;"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h4 class="mb-3"><i class="fas fa-chart-pie me-2"></i>Quick Stats</h4>
+    </div>
+    <div class="col-md-6">
+        <div class="card card-success border-0">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Roles Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6 mb-3">
+                        <p class="text-muted small mb-1">Admin Users</p>
+                        <h3 style="color: #2563eb;">
+                            <i class="fas fa-crown"></i>
+                        </h3>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="text-muted small mb-1">Total Permissions</p>
+                        <h3 style="color: #10b981;">{{ stats.total_permissions }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card card-info border-0">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-users-cog me-2"></i>User Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <p class="text-muted small mb-1">Active</p>
+                        <h3 style="color: #10b981;">{{ stats.active_users }}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted small mb-1">Inactive</p>
+                        <h3 style="color: #ef4444;">{{ stats.inactive_users }}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted small mb-1">Total</p>
+                        <h3 style="color: #2563eb;">{{ stats.total_users }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

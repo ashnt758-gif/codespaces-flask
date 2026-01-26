@@ -1,0 +1,108 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Admin Settings</h2>
+            <p class="text-muted">Configure system settings and preferences</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">Back to Admin</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="alert alert-info">
+                <strong>Settings Panel</strong> - Additional configuration options coming soon.
+            </div>
+
+            <div class="card card-primary border-0">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">System Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Application</dt>
+                        <dd class="col-sm-9">KSPL Statutory Document Management System</dd>
+
+                        <dt class="col-sm-3">Version</dt>
+                        <dd class="col-sm-9">1.0.0</dd>
+
+                        <dt class="col-sm-3">Python</dt>
+                        <dd class="col-sm-9">3.8+</dd>
+
+                        <dt class="col-sm-3">Framework</dt>
+                        <dd class="col-sm-9">Flask 2.3.2</dd>
+
+                        <dt class="col-sm-3">Database</dt>
+                        <dd class="col-sm-9">SQLite / SQLAlchemy 2.0.46</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card card-success border-0 mt-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Admin Quick Links</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('admin.user_list') }}" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">👥 Manage Users</h6>
+                            <p class="mb-0 text-muted"><small>Create, edit, and deactivate users</small></p>
+                        </a>
+                        <a href="{{ url_for('admin.role_list') }}" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">🔐 Configure Roles</h6>
+                            <p class="mb-0 text-muted"><small>Manage roles and permissions</small></p>
+                        </a>
+                        <a href="{{ url_for('main.dashboard') }}" class="list-group-item list-group-item-action">
+                            <h6 class="mb-1">📊 Dashboard</h6>
+                            <p class="mb-0 text-muted"><small>View system statistics</small></p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card card-info border-0">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Admin Resources</h5>
+                </div>
+                <div class="card-body">
+                    <h6>📚 Documentation</h6>
+                    <p><small>Refer to the README.md for system documentation and setup instructions.</small></p>
+
+                    <h6 class="mt-3">🔒 Security</h6>
+                    <p><small>All user passwords are securely hashed. Always use strong passwords and change the default admin password.</small></p>
+
+                    <h6 class="mt-3">⚙️ Configuration</h6>
+                    <p><small>System configuration is managed in config.py. Adjust settings for your environment.</small></p>
+                </div>
+            </div>
+
+            <div class="card card-warning border-0 mt-3">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Role Hierarchy</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><span class="badge bg-danger">ADMIN</span></h6>
+                        <small>Full system access and management capabilities</small>
+                    </div>
+                    <div class="mb-3">
+                        <h6><span class="badge bg-warning">HOD</span></h6>
+                        <small>Department head with approval authority</small>
+                    </div>
+                    <div>
+                        <h6><span class="badge bg-info">EMPLOYEE</span></h6>
+                        <small>Basic document management and submission</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

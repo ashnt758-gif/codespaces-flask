@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ agreement.title }}</h1>
+    <p><strong>Reference:</strong> {{ agreement.reference_number }}</p>
+    
+    <h3 class="mt-4">Details</h3>
+    <p><strong>Type:</strong> {{ agreement.agreement_type or '-' }}</p>
+    <p><strong>Party:</strong> {{ agreement.party_name or '-' }}</p>
+    <p><strong>Effective Date:</strong> {{ agreement.effective_date.strftime('%Y-%m-%d') if agreement.effective_date else '-' }}</p>
+    <p><strong>Expiry Date:</strong> {{ agreement.expiry_date.strftime('%Y-%m-%d') if agreement.expiry_date else '-' }}</p>
+    
+    <h3 class="mt-4">Description</h3>
+    <p>{{ agreement.description or '-' }}</p>
+</div>
+{% endblock %}

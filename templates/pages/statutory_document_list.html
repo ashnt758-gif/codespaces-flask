@@ -1,0 +1,71 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1>Statutory Documents</h1>
+    
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form method="GET" class="form-inline">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search..." value="{{ request.args.get('search', '') }}">
+                <select name="status" class="form-select me-2">
+                    <option value="">All Status</option>
+                    <option value="Draft" {% if request.args.get('status') == 'Draft' %}selected{% endif %}>Draft</option>
+                    <option value="Submitted" {% if request.args.get('status') == 'Submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+                    <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ url_for('main.statutory_document_create') }}" class="btn btn-success">Create Statutory Document</a>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Reference Number</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Regulatory Body</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items.items %}
+            <tr>
+                <td>{{ item.reference_number }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.document_type or '-' }}</td>
+                <td>{{ item.regulatory_body or '-' }}</td>
+                <td>{{ item.due_date.strftime('%Y-%m-%d') if item.due_date else '-' }}</td>
+                <td>
+                    {% if item.status == 'Draft' %}
+                        <span class="badge bg-secondary">Draft</span>
+                    {% elif item.status == 'Submitted' %}
+                        <span class="badge bg-info">Submitted</span>
+                    {% elif item.status == 'Approved' %}
+                        <span class="badge bg-success">Approved</span>
+                    {% else %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.created_by.username }}</td>
+                <td>
+                    <a href="{{ url_for('main.statutory_document_view', id=item.id) }}" class="btn btn-sm btn-info">View</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center">No statutory documents found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

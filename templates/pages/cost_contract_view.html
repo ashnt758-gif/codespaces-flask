@@ -1,0 +1,63 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ contract.title }}</h1>
+            <p><strong>Reference Number:</strong> {{ contract.reference_number }}</p>
+            <p><strong>Status:</strong>
+                {% if contract.status == 'Draft' %}
+                    <span class="badge bg-secondary">Draft</span>
+                {% elif contract.status == 'Submitted' %}
+                    <span class="badge bg-info">Submitted</span>
+                {% elif contract.status == 'Approved' %}
+                    <span class="badge bg-success">Approved</span>
+                {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </p>
+            
+            <h3 class="mt-4">Details</h3>
+            <p><strong>Contract Type:</strong> {{ contract.contract_type or '-' }}</p>
+            <p><strong>Vendor:</strong> {{ contract.vendor_name or '-' }}</p>
+            <p><strong>Contract Value:</strong> {{ contract.contract_value or '-' }}</p>
+            <p><strong>Start Date:</strong> {{ contract.start_date.strftime('%Y-%m-%d %H:%M:%S') if contract.start_date else '-' }}</p>
+            <p><strong>End Date:</strong> {{ contract.end_date.strftime('%Y-%m-%d %H:%M:%S') if contract.end_date else '-' }}</p>
+            
+            <h3 class="mt-4">Description</h3>
+            <p>{{ contract.description or '-' }}</p>
+
+            <h3 class="mt-4">Attachments</h3>
+            {% if contract.attachments %}
+            <ul class="list-group">
+                {% for attachment in contract.attachments %}
+                <li class="list-group-item">{{ attachment.filename }}<small class="text-muted"> ({{ attachment.uploaded_by.username }})</small></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No attachments</p>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Approval History</h5>
+                    {% if approvals %}
+                    <ul class="list-unstyled">
+                        {% for approval in approvals %}
+                        <li class="mb-2">
+                            <strong>{{ approval.action }}</strong> by {{ approval.approved_by.username }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No approval history</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

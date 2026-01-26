@@ -1,0 +1,269 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-1"><i class="fas fa-chart-line me-2"></i>Dashboard</h1>
+        <p class="text-muted">
+            Welcome, <strong>{{ current_user.first_name or current_user.username }}</strong>! 
+            {% if current_user.has_role('admin') %}
+            <span class="badge bg-danger">Admin</span>
+            {% elif current_user.has_role('hod') %}
+            <span class="badge bg-warning">Head of Department</span>
+            {% else %}
+            <span class="badge bg-secondary">Employee</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Statistics Cards - Show different stats based on role -->
+<div class="row mb-4">
+    {% if current_user.has_role('admin') %}
+        <!-- Admin View: All Statistics -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card primary">
+                <h5><i class="fas fa-users me-2"></i>Total Users</h5>
+                <h2>{{ stats.nfa }}</h2>
+                <p>Registered users</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card success">
+                <h5><i class="fas fa-check-circle me-2"></i>Pending Approvals</h5>
+                <h2>{{ stats.pending_approvals }}</h2>
+                <p>Awaiting action</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card info">
+                <h5><i class="fas fa-file-alt me-2"></i>Total Documents</h5>
+                <h2>{{ stats.work_orders }}</h2>
+                <p>All documents</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card warning">
+                <h5><i class="fas fa-cogs me-2"></i>System Health</h5>
+                <h2>100%</h2>
+                <p>All systems operational</p>
+            </div>
+        </div>
+    {% elif current_user.has_role('hod') %}
+        <!-- HOD View: Team and Approval Statistics -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card primary">
+                <h5><i class="fas fa-check-circle me-2"></i>Pending Approvals</h5>
+                <h2>{{ stats.pending_approvals }}</h2>
+                <p>Documents waiting</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card success">
+                <h5><i class="fas fa-file-alt me-2"></i>NFA Documents</h5>
+                <h2>{{ stats.nfa }}</h2>
+                <p>Created & managed</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card info">
+                <h5><i class="fas fa-tasks me-2"></i>Work Orders</h5>
+                <h2>{{ stats.work_orders }}</h2>
+                <p>Active orders</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card warning">
+                <h5><i class="fas fa-chart-line me-2"></i>This Month</h5>
+                <h2>8</h2>
+                <p>Documents approved</p>
+            </div>
+        </div>
+    {% else %}
+        <!-- Employee View: Personal Statistics -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card primary">
+                <h5><i class="fas fa-file-alt me-2"></i>My Documents</h5>
+                <h2>{{ stats.nfa }}</h2>
+                <p>Created by me</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card success">
+                <h5><i class="fas fa-hourglass-half me-2"></i>Pending Review</h5>
+                <h2>{{ stats.pending_approvals }}</h2>
+                <p>Awaiting approval</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card info">
+                <h5><i class="fas fa-check me-2"></i>Approved</h5>
+                <h2>{{ stats.work_orders }}</h2>
+                <p>Successfully approved</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card warning">
+                <h5><i class="fas fa-tasks me-2"></i>In Draft</h5>
+                <h2>2</h2>
+                <p>Not submitted yet</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions - Show role-specific actions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h4>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('main.nfa_create') }}" class="card card-primary border-0 text-decoration-none text-dark">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-plus-circle" style="font-size: 2.5rem; color: #2563eb;"></i>
+                        <h5 class="mt-3 mb-1">Create NFA</h5>
+                        <p class="text-muted small mb-0">Start a new document</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('main.work_order_create') }}" class="card card-success border-0 text-decoration-none text-dark">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-plus-circle" style="font-size: 2.5rem; color: #10b981;"></i>
+                        <h5 class="mt-3 mb-1">Create Work Order</h5>
+                        <p class="text-muted small mb-0">Create a new order</p>
+                    </div>
+                </a>
+            </div>
+            {% if current_user.has_role('admin') %}
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('admin.user_list') }}" class="card card-info border-0 text-decoration-none text-dark">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-users" style="font-size: 2.5rem; color: #0891b2;"></i>
+                        <h5 class="mt-3 mb-1">Manage Users</h5>
+                        <p class="text-muted small mb-0">Create & manage users</p>
+                    </div>
+                </a>
+            </div>
+            {% elif current_user.has_role('hod') %}
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('main.nfa_list') }}" class="card card-info border-0 text-decoration-none text-dark">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-check-double" style="font-size: 2.5rem; color: #0891b2;"></i>
+                        <h5 class="mt-3 mb-1">Review Documents</h5>
+                        <p class="text-muted small mb-0">Approve/reject items</p>
+                    </div>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('main.nfa_list') }}" class="card card-info border-0 text-decoration-none text-dark">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-list" style="font-size: 2.5rem; color: #0891b2;"></i>
+                        <h5 class="mt-3 mb-1">View My Documents</h5>
+                        <p class="text-muted small mb-0">Check document status</p>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Document Modules -->
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mb-3"><i class="fas fa-folder-open me-2"></i>Document Modules</h4>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-primary border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>NFA</h5>
+                    <span class="badge bg-primary">{{ stats.nfa }}</span>
+                </div>
+                <p class="text-muted small mb-3">Non-Functional Agreements</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.nfa_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.nfa_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-success border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Work Orders</h5>
+                    <span class="badge bg-success">{{ stats.work_orders }}</span>
+                </div>
+                <p class="text-muted small mb-3">Manage work orders and assignments</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.work_order_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.work_order_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-info border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Cost Contracts</h5>
+                    <span class="badge bg-info">{{ stats.cost_contracts }}</span>
+                </div>
+                <p class="text-muted small mb-3">Manage cost contracts</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.cost_contract_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.cost_contract_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-warning border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Revenue Contracts</h5>
+                    <span class="badge bg-warning">{{ stats.revenue_contracts }}</span>
+                </div>
+                <p class="text-muted small mb-3">Manage revenue contracts</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.revenue_contract_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.revenue_contract_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-danger border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Agreements</h5>
+                    <span class="badge bg-danger">{{ stats.agreements }}</span>
+                </div>
+                <p class="text-muted small mb-3">Manage agreements</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.agreement_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.agreement_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card card-secondary border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-certificate me-2"></i>Statutory Docs</h5>
+                    <span class="badge bg-secondary">{{ stats.statutory_docs }}</span>
+                </div>
+                <p class="text-muted small mb-3">Manage statutory documents</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.statutory_document_list') }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ url_for('main.statutory_document_create') }}" class="btn btn-sm btn-primary">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

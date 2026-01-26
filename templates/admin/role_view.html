@@ -1,0 +1,121 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>{{ role.name | upper }} - Edit Permissions</h2>
+            <p class="text-muted">{{ role.description }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.role_list') }}" class="btn btn-outline-secondary">Back to Roles</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card card-primary border-0">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Assign Permissions to {{ role.name | upper }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Role Description</label>
+                            <textarea name="description" id="description" class="form-control" rows="2">{{ role.description }}</textarea>
+                        </div>
+
+                        <!-- Permissions -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Select Permissions:</h6>
+                            <div class="border rounded p-3">
+                                {% if all_permissions %}
+                                    {% set grouped_perms = {} %}
+                                    {% for perm in all_permissions %}
+                                        {% set prefix = perm.name.split('_')[0] %}
+                                        {% if prefix not in grouped_perms %}
+                                            {% set _ = grouped_perms.update({prefix: []}) %}
+                                        {% endif %}
+                                        {% set _ = grouped_perms[prefix].append(perm) %}
+                                    {% endfor %}
+
+                                    {% for category in grouped_perms.keys() | sort %}
+                                    <div class="mb-3">
+                                        <h6 class="text-secondary mb-2 text-capitalize">{{ category }} Permissions</h6>
+                                        {% for perm in grouped_perms[category] %}
+                                        <div class="form-check ms-3 mb-2">
+                                            <input class="form-check-input" type="checkbox" name="permissions" 
+                                                   value="{{ perm.id }}" id="perm_{{ perm.id }}"
+                                                   {% if perm.id in role_permission_ids %}checked{% endif %}>
+                                            <label class="form-check-label" for="perm_{{ perm.id }}">
+                                                <code>{{ perm.name }}</code>
+                                                <small class="text-muted">- {{ perm.description }}</small>
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <p class="text-muted">No permissions available</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save Permissions</button>
+                            <a href="{{ url_for('admin.role_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Users with this role -->
+            <div class="card card-success border-0">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Users with {{ role.name }} Role</h5>
+                </div>
+                <div class="card-body">
+                    {% if role.users %}
+                    <div class="list-group">
+                        {% for user in role.users %}
+                        <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ user.username }}</h6>
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No users assigned to this role</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card card-info border-0 mt-3">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Permissions:</dt>
+                        <dd class="col-sm-6"><strong>{{ role.permissions | length }}</strong></dd>
+                        <dt class="col-sm-6">Users:</dt>
+                        <dd class="col-sm-6"><strong>{{ role.users.count() }}</strong></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

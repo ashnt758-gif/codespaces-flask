@@ -1,0 +1,100 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ work_order.title }}</h1>
+            <p><strong>Reference Number:</strong> {{ work_order.reference_number }}</p>
+            <p><strong>Status:</strong>
+                {% if work_order.status == 'Draft' %}
+                    <span class="badge bg-secondary">Draft</span>
+                {% elif work_order.status == 'Submitted' %}
+                    <span class="badge bg-info">Submitted</span>
+                {% elif work_order.status == 'Approved' %}
+                    <span class="badge bg-success">Approved</span>
+                {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </p>
+            <p><strong>Created By:</strong> {{ work_order.created_by.username }}</p>
+            <p><strong>Created Date:</strong> {{ work_order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            
+            <h3 class="mt-4">Details</h3>
+            <p><strong>PO Number:</strong> {{ work_order.po_number or '-' }}</p>
+            <p><strong>Vendor:</strong> {{ work_order.vendor_name or '-' }}</p>
+            <p><strong>Amount:</strong> {{ work_order.amount or '-' }}</p>
+            <p><strong>Start Date:</strong> {{ work_order.start_date.strftime('%Y-%m-%d %H:%M:%S') if work_order.start_date else '-' }}</p>
+            <p><strong>End Date:</strong> {{ work_order.end_date.strftime('%Y-%m-%d %H:%M:%S') if work_order.end_date else '-' }}</p>
+            
+            <h3 class="mt-4">Description</h3>
+            <p>{{ work_order.description or '-' }}</p>
+
+            {% if work_order.rejected_remarks %}
+            <div class="alert alert-danger mt-4">
+                <strong>Rejection Remarks:</strong> {{ work_order.rejected_remarks }}
+            </div>
+            {% endif %}
+
+            <h3 class="mt-4">Attachments</h3>
+            {% if work_order.attachments %}
+            <ul class="list-group">
+                {% for attachment in work_order.attachments %}
+                <li class="list-group-item">
+                    <a href="/uploads/{{ attachment.file_path | basename }}" target="_blank">{{ attachment.filename }}</a>
+                    <small class="text-muted">({{ attachment.uploaded_by.username }}, {{ attachment.uploaded_at.strftime('%Y-%m-%d %H:%M') }})</small>
+                    {% if attachment.is_readonly %}
+                        <span class="badge bg-warning">Read-only</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No attachments</p>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Actions</h5>
+                    {% if can_edit %}
+                    <a href="{{ url_for('main.work_order_edit', id=work_order.id) }}" class="btn btn-warning btn-sm w-100 mb-2">Edit</a>
+                    {% endif %}
+                    
+                    {% if work_order.status == 'Draft' %}
+                    <form method="POST" action="{{ url_for('main.work_order_submit', id=work_order.id) }}" class="d-inline w-100">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Submit for Approval</button>
+                    </form>
+                    {% elif work_order.status == 'Submitted' %}
+                    <a href="{{ url_for('main.work_order_approve', id=work_order.id) }}" class="btn btn-success btn-sm w-100">Approve/Reject</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Approval History</h5>
+                    {% if approvals %}
+                    <ul class="list-unstyled">
+                        {% for approval in approvals %}
+                        <li class="mb-3">
+                            <strong>{{ approval.action }}</strong> by {{ approval.approved_by.username }}
+                            <br>
+                            <small class="text-muted">{{ approval.approved_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                            {% if approval.comments %}
+                            <br>
+                            <small>{{ approval.comments }}</small>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No approval history</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ title }}</h1>
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.reference_number.label }}
+                    {{ form.reference_number(class="form-control", readonly=True) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.title.label }}
+                    {% if form.title.errors %}
+                        {{ form.title(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">{% for error in form.title.errors %}{{ error }}{% endfor %}</div>
+                    {% else %}
+                        {{ form.title(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.contract_type.label }}
+                    {{ form.contract_type(class="form-control") }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.vendor_name.label }}
+                    {{ form.vendor_name(class="form-control") }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.contract_value.label }}
+                    {{ form.contract_value(class="form-control") }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.start_date.label }}
+                    {{ form.start_date(class="form-control", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form.end_date.label }}
+                    {{ form.end_date(class="form-control", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label }}
+            {{ form.description(class="form-control", rows="4") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.attachments.label }}
+            {{ form.attachments(class="form-control") }}
+            <small class="form-text text-muted">Allowed formats: PDF, XLSX, XLS, DOC, DOCX, TXT, JPG, PNG</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('main.cost_contract_list') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

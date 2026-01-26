@@ -1,19 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>{{ title }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSPL Statutory Documents</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-
+</head>
 <body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
-    </div>
-</body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-document-shield me-2"></i>KSPL Documents
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                                <i class="fas fa-chart-line me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.nfa_list') }}">
+                                <i class="fas fa-file-alt me-1"></i>NFA
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.work_order_list') }}">
+                                <i class="fas fa-tasks me-1"></i>Work Orders
+                            </a>
+                        </li>
+                        {% if current_user.has_permission('admin_access') %}
+                        <li class="nav-item">
+                            <a class="nav-link text-primary" href="{{ url_for('admin.admin_dashboard') }}">
+                                <i class="fas fa-cog me-1"></i>Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
 
+    <!-- Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container-fluid px-4 mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        {% block content %}
+            {% if not current_user.is_authenticated %}
+                <div class="row mt-5 mb-5">
+                    <div class="col-lg-8 offset-lg-2">
+                        <div class="card border-0">
+                            <div class="card-body text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-document-shield" style="font-size: 4rem; color: #2563eb;"></i>
+                                </div>
+                                <h1 class="mb-3">KSPL Statutory Documents</h1>
+                                <p class="text-muted mb-4" style="font-size: 1.1rem;">
+                                    A comprehensive document management system for statutory compliance, approvals, and workflows.
+                                </p>
+                                <p class="text-muted mb-4">
+                                    Manage NFAs, Work Orders, Contracts, and Agreements with built-in approval workflows and role-based access control.
+                                </p>
+                                <div class="d-flex gap-3 justify-content-center">
+                                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                                    </a>
+                                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Create Account
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Features -->
+                        <div class="row mt-5">
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-lock" style="font-size: 2rem; color: #2563eb;"></i>
+                                        <h5 class="mt-3 mb-2">Secure Access</h5>
+                                        <p class="text-muted small">Role-based access control with admin, HOD, and employee roles</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-check-double" style="font-size: 2rem; color: #10b981;"></i>
+                                        <h5 class="mt-3 mb-2">Approval Workflows</h5>
+                                        <p class="text-muted small">Multi-level approvals with configurable workflows</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #0891b2;"></i>
+                                        <h5 class="mt-3 mb-2">File Management</h5>
+                                        <p class="text-muted small">Secure document uploads with attachment tracking</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top mt-5 py-4">
+        <div class="container-fluid px-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">© 2024 KSPL Statutory Documents. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">Version 1.0.0</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
+

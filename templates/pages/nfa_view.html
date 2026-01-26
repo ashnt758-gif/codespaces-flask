@@ -1,0 +1,100 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ nfa.title }}</h1>
+            <p><strong>Reference Number:</strong> {{ nfa.reference_number }}</p>
+            <p><strong>Status:</strong>
+                {% if nfa.status == 'Draft' %}
+                    <span class="badge bg-secondary">Draft</span>
+                {% elif nfa.status == 'Submitted' %}
+                    <span class="badge bg-info">Submitted</span>
+                {% elif nfa.status == 'Approved' %}
+                    <span class="badge bg-success">Approved</span>
+                {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </p>
+            <p><strong>Created By:</strong> {{ nfa.created_by.username }}</p>
+            <p><strong>Created Date:</strong> {{ nfa.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            
+            <h3 class="mt-4">Details</h3>
+            <p><strong>Amount:</strong> {{ nfa.amount or '-' }}</p>
+            <p><strong>Approval Date:</strong> {{ nfa.approval_date.strftime('%Y-%m-%d %H:%M:%S') if nfa.approval_date else '-' }}</p>
+            
+            <h3 class="mt-4">Description</h3>
+            <p>{{ nfa.description or '-' }}</p>
+            
+            <h3 class="mt-4">Notes</h3>
+            <p>{{ nfa.notes or '-' }}</p>
+
+            {% if nfa.rejected_remarks %}
+            <div class="alert alert-danger mt-4">
+                <strong>Rejection Remarks:</strong> {{ nfa.rejected_remarks }}
+            </div>
+            {% endif %}
+
+            <h3 class="mt-4">Attachments</h3>
+            {% if nfa.attachments %}
+            <ul class="list-group">
+                {% for attachment in nfa.attachments %}
+                <li class="list-group-item">
+                    <a href="/uploads/{{ attachment.file_path | basename }}" target="_blank">{{ attachment.filename }}</a>
+                    <small class="text-muted">({{ attachment.uploaded_by.username }}, {{ attachment.uploaded_at.strftime('%Y-%m-%d %H:%M') }})</small>
+                    {% if attachment.is_readonly %}
+                        <span class="badge bg-warning">Read-only</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No attachments</p>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Actions</h5>
+                    {% if can_edit %}
+                    <a href="{{ url_for('main.nfa_edit', id=nfa.id) }}" class="btn btn-warning btn-sm w-100 mb-2">Edit</a>
+                    {% endif %}
+                    
+                    {% if nfa.status == 'Draft' %}
+                    <form method="POST" action="{{ url_for('main.nfa_submit', id=nfa.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Submit for Approval</button>
+                    </form>
+                    {% elif nfa.status == 'Submitted' %}
+                    <a href="{{ url_for('main.nfa_approve', id=nfa.id) }}" class="btn btn-success btn-sm w-100">Approve/Reject</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Approval History</h5>
+                    {% if approvals %}
+                    <ul class="list-unstyled">
+                        {% for approval in approvals %}
+                        <li class="mb-3">
+                            <strong>{{ approval.action }}</strong> by {{ approval.approved_by.username }}
+                            <br>
+                            <small class="text-muted">{{ approval.approved_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                            {% if approval.comments %}
+                            <br>
+                            <small>{{ approval.comments }}</small>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No approval history</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

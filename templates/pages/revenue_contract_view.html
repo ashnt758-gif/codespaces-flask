@@ -1,0 +1,18 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ contract.title }}</h1>
+    <p><strong>Reference:</strong> {{ contract.reference_number }}</p>
+    
+    <h3 class="mt-4">Details</h3>
+    <p><strong>Customer:</strong> {{ contract.customer_name or '-' }}</p>
+    <p><strong>Contract Value:</strong> {{ contract.contract_value or '-' }}</p>
+    <p><strong>Start Date:</strong> {{ contract.start_date.strftime('%Y-%m-%d') if contract.start_date else '-' }}</p>
+    <p><strong>End Date:</strong> {{ contract.end_date.strftime('%Y-%m-%d') if contract.end_date else '-' }}</p>
+    <p><strong>Terms:</strong> {{ contract.terms or '-' }}</p>
+    
+    <h3 class="mt-4">Description</h3>
+    <p>{{ contract.description or '-' }}</p>
+</div>
+{% endblock %}

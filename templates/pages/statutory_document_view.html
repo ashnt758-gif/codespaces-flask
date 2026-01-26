@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ document.title }}</h1>
+    <p><strong>Reference:</strong> {{ document.reference_number }}</p>
+    
+    <h3 class="mt-4">Details</h3>
+    <p><strong>Document Type:</strong> {{ document.document_type or '-' }}</p>
+    <p><strong>Regulatory Body:</strong> {{ document.regulatory_body or '-' }}</p>
+    <p><strong>Due Date:</strong> {{ document.due_date.strftime('%Y-%m-%d') if document.due_date else '-' }}</p>
+    
+    <h3 class="mt-4">Description</h3>
+    <p>{{ document.description or '-' }}</p>
+</div>
+{% endblock %}

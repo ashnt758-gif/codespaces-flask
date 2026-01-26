@@ -1,0 +1,130 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>{{ action }} User</h2>
+            <p class="text-muted">Create or edit user account</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.user_list') }}" class="btn btn-outline-secondary">Back to Users</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card card-primary border-0">
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {% if user %}
+                        <div class="alert alert-info">Editing user: <strong>{{ user.username }}</strong></div>
+                        {% endif %}
+
+                        <!-- Username (disabled for edit) -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                            {% if user %}
+                            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                            <small class="text-muted">Cannot change username</small>
+                            {% else %}
+                            <input type="text" name="username" id="username" class="form-control" required>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="email" class="form-control" value="{{ user.email if user else '' }}" required>
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" name="first_name" id="first_name" class="form-control" value="{{ user.first_name if user else '' }}">
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" name="last_name" id="last_name" class="form-control" value="{{ user.last_name if user else '' }}">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                Password
+                                {% if not user %}
+                                <span class="text-danger">*</span>
+                                {% else %}
+                                <small class="text-muted">(Leave empty to keep current password)</small>
+                                {% endif %}
+                            </label>
+                            <input type="password" name="password" id="password" class="form-control" {% if not user %}required{% endif %}>
+                        </div>
+
+                        <!-- Roles -->
+                        <div class="mb-3">
+                            <label class="form-label">Assign Roles <span class="text-danger">*</span></label>
+                            <div class="border rounded p-3">
+                                {% for role in roles %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="roles" value="{{ role.id }}" 
+                                           id="role_{{ role.id }}"
+                                           {% if user and role.id in user_role_ids %}checked{% endif %}>
+                                    <label class="form-check-label" for="role_{{ role.id }}">
+                                        <strong>{{ role.name | upper }}</strong>
+                                        <small class="text-muted d-block">{{ role.description }}</small>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Status (for edit only) -->
+                        {% if user %}
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" 
+                                       {% if user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    Active User
+                                </label>
+                            </div>
+                            <small class="text-muted">Deactivate to prevent login without deleting the account</small>
+                        </div>
+                        {% endif %}
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">{{ action }} User</button>
+                            <a href="{{ url_for('admin.user_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Role Descriptions -->
+            <div class="card card-success border-0 mt-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Role Descriptions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><span class="badge bg-danger">ADMIN</span></h6>
+                        <p>Full system access including user management, role configuration, and document approval workflows. Admins can access the admin panel.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><span class="badge bg-warning">HOD</span></h6>
+                        <p>Head of Department role with permission to create, edit, and approve documents. Can manage team workflows and view reports.</p>
+                    </div>
+                    <div class="mb-0">
+                        <h6><span class="badge bg-info">EMPLOYEE</span></h6>
+                        <p>Regular employee role. Can create and edit their own documents, view reports, but cannot approve documents.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
