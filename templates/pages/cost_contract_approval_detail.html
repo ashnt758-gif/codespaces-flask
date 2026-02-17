@@ -1,0 +1,166 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Cost Contract Approval Request
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5>Document Details</h5>
+                        <hr>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Reference Number:</strong></p>
+                            <p>{{ cost_contract.reference_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Title:</strong></p>
+                            <p>{{ cost_contract.title }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Contract Value:</strong></p>
+                            <p>{{ cost_contract.contract_value or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Contract Period:</strong></p>
+                            <p>{{ cost_contract.contract_period or '-' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Vendor Name:</strong></p>
+                            <p>{{ cost_contract.vendor_name or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Contract Date:</strong></p>
+                            <p>{{ cost_contract.contract_date.strftime('%Y-%m-%d') if cost_contract.contract_date else '-' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <p><strong>Created By:</strong> {{ cost_contract.created_by.username }}</p>
+                        <p><strong>Created Date:</strong> {{ cost_contract.created_at|to_ist|default('N/A') }} IST</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Description</h5>
+                        <div class="bg-light p-3 rounded">
+                            {{ cost_contract.description or '-' }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Notes</h5>
+                        <div class="bg-light p-3 rounded">
+                            {{ cost_contract.notes or '-' }}
+                        </div>
+                    </div>
+
+                    {% if cost_contract.attachments %}
+                    <div class="mb-3">
+                        <h5>Attachments</h5>
+                        <ul class="list-group">
+                            {% for attachment in cost_contract.attachments %}
+                            <li class="list-group-item">
+                                <a href="{{ url_for('main.download_attachment', attachment_id=attachment.id) }}" class="text-decoration-none">
+                                    <i class="fas fa-file"></i> {{ attachment.filename }}
+                                </a>
+                                <small class="text-muted d-block">{{ attachment.uploaded_by.username }} - {{ attachment.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card sticky-top">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Approval Action</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.cost_contract_approve', id=cost_contract.id) }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="action" class="form-label"><strong>Decision</strong></label>
+                            <select class="form-select form-select-lg" id="action" name="action" required onchange="updateDecisionUI()">
+                                <option value="">-- Select Action --</option>
+                                <option value="approve">✓ Approve Document</option>
+                                <option value="reject">✗ Reject & Return for Revision</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comments" class="form-label"><strong>Comments/Remarks</strong></label>
+                            <textarea class="form-control" id="comments" name="comments" rows="5" placeholder="Add your comments or reasons for rejection..."></textarea>
+                            <small class="text-muted">Provide constructive feedback for the document creator</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-lg w-100" id="submit-btn" disabled>
+                            <i class="fas fa-paper-plane"></i> Submit Decision
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <a href="{{ url_for('main.approval_requests') }}" class="btn btn-secondary btn-sm w-100">
+                        <i class="fas fa-arrow-left"></i> Back to Requests
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Status</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Current Status:</strong></p>
+                    <p>
+                        <span class="badge bg-warning">Pending Approval</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateDecisionUI() {
+    const action = document.getElementById('action').value;
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (action) {
+        submitBtn.disabled = false;
+        if (action === 'approve') {
+            submitBtn.classList.remove('btn-danger');
+            submitBtn.classList.add('btn-success');
+            submitBtn.innerHTML = '<i class="fas fa-thumbs-up"></i> Approve';
+        } else if (action === 'reject') {
+            submitBtn.classList.remove('btn-success');
+            submitBtn.classList.add('btn-danger');
+            submitBtn.innerHTML = '<i class="fas fa-thumbs-down"></i> Reject & Return';
+        }
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('btn-success', 'btn-danger');
+        submitBtn.classList.add('btn-primary');
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Decision';
+    }
+}
+</script>
+{% endblock %}

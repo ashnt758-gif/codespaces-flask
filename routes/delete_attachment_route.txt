@@ -1,0 +1,19 @@
+@main_bp.route('/attachment/<int:attachment_id>/delete', methods=['POST'])
+@login_required
+def delete_attachment(attachment_id):
+    """Delete an attachment and return to the referrer"""
+    attachment = Attachment.query.get_or_404(attachment_id)
+    
+    # Delete physical file if it exists
+    if os.path.exists(attachment.file_path):
+        try:
+            os.remove(attachment.file_path)
+        except Exception as e:
+            flash(f'Error deleting file: {str(e)}', 'warning')
+    
+    # Delete from database
+    db.session.delete(attachment)
+    db.session.commit()
+    
+    flash('Attachment deleted successfully!', 'success')
+    return redirect(request.referrer or url_for('main.dashboard'))

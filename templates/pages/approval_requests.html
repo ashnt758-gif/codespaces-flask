@@ -1,0 +1,86 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Pending Approval Requests</h1>
+    
+    {% if pending_docs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Document Type</th>
+                        <th>Reference Number</th>
+                        <th>Title</th>
+                        <th>Created By</th>
+                        <th>Submitted Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pending_docs %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary">{{ item.type }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ item.doc.reference_number }}</strong>
+                        </td>
+                        <td>
+                            {{ item.doc.title[:50] }}{% if item.doc.title|length > 50 %}...{% endif %}
+                        </td>
+                        <td>
+                            {{ item.doc.created_by.username }}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ item.doc.created_at|to_ist|default('N/A') }} IST</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">Pending</span>
+                        </td>
+                        <td>
+                            {% if item.type == 'NFA' %}
+                                <a href="{{ url_for('main.nfa_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% elif item.type == 'Work Order' %}
+                                <a href="{{ url_for('main.work_order_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% elif item.type == 'Cost Contract' %}
+                                <a href="{{ url_for('main.cost_contract_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% elif item.type == 'Revenue Contract' %}
+                                <a href="{{ url_for('main.revenue_contract_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% elif item.type == 'Agreement' %}
+                                <a href="{{ url_for('main.agreement_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% elif item.type == 'Statutory Document' %}
+                                <a href="{{ url_for('main.statutory_document_approval_detail', id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> No pending approval requests at the moment.
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    table tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+{% endblock %}

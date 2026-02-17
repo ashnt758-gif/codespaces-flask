@@ -1,0 +1,160 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 style="color: #1e3a8a; font-weight: 600;"><i class="fas fa-handshake me-2"></i>Party Master</h1>
+            <p class="text-muted">Manage party information and master data</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.party_create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Party
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row">
+                <div class="col-md-9">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, code or email..." value="{{ search or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Parties Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #f3f4f6;">
+                        <tr>
+                            <th style="color: #1e3a8a; font-weight: 600;">Code</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Name</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Contact Person</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Email</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Phone</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Status</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if parties.items %}
+                            {% for party in parties.items %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ party.code }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ party.name }}</strong>
+                                </td>
+                                <td>{{ party.contact_person or '<span class="text-muted">-</span>'|safe }}</td>
+                                <td>{{ party.email or '<span class="text-muted">-</span>'|safe }}</td>
+                                <td>{{ party.phone or '<span class="text-muted">-</span>'|safe }}</td>
+                                <td>
+                                    {% if party.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ url_for('admin.party_edit', party_id=party.id) }}">
+                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('admin.party_toggle_active', party_id=party.id) }}" style="display: inline;">
+                                                    <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure?')">
+                                                        <i class="fas fa-toggle-on me-2"></i>{% if party.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('admin.party_delete', party_id=party.id) }}" style="display: inline;">
+                                                    <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to delete? This action cannot be undone.')">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox me-2"></i>No parties found
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if parties.pages > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if parties.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.party_list', page=parties.prev_num, search=search) }}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Previous</span>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in parties.iter_pages(left_edge=1, right_edge=3, left_margin=1, right_margin=1) %}
+                            {% if page_num %}
+                                {% if page_num == parties.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.party_list', page=page_num, search=search) }}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if parties.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.party_list', page=parties.next_num, search=search) }}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -117,11 +117,23 @@ class WorkflowEngine:
         """Approve a document"""
         from models import ApprovalHistory, db
         
+        # Map module names to field names
+        field_map = {
+            'NFA': 'nfa_id',
+            'WorkOrder': 'work_order_id',
+            'CostContract': 'cost_contract_id',
+            'RevenueContract': 'revenue_contract_id',
+            'Agreement': 'agreement_id',
+            'StatutoryDocument': 'statutory_document_id'
+        }
+        
+        field_name = field_map.get(module_name, f'{module_name.lower()}_id')
+        
         history = ApprovalHistory(
             action='Approved',
             approved_by_id=approved_by_user.id,
             comments=comments,
-            **{f'{module_name.lower()}_id': document_model.id}
+            **{field_name: document_model.id}
         )
         
         db.session.add(history)
@@ -135,11 +147,23 @@ class WorkflowEngine:
         """Reject a document"""
         from models import ApprovalHistory, db
         
+        # Map module names to field names
+        field_map = {
+            'NFA': 'nfa_id',
+            'WorkOrder': 'work_order_id',
+            'CostContract': 'cost_contract_id',
+            'RevenueContract': 'revenue_contract_id',
+            'Agreement': 'agreement_id',
+            'StatutoryDocument': 'statutory_document_id'
+        }
+        
+        field_name = field_map.get(module_name, f'{module_name.lower()}_id')
+        
         history = ApprovalHistory(
             action='Rejected',
             approved_by_id=rejected_by_user.id,
             comments=remarks,
-            **{f'{module_name.lower()}_id': document_model.id}
+            **{field_name: document_model.id}
         )
         
         db.session.add(history)

@@ -50,6 +50,19 @@
                             <input type="text" name="last_name" id="last_name" class="form-control" value="{{ user.last_name if user else '' }}">
                         </div>
 
+                        <!-- Department -->
+                        <div class="mb-3">
+                            <label for="department_id" class="form-label">Department</label>
+                            <select name="department_id" id="department_id" class="form-select">
+                                <option value="">-- Select Department (Optional) --</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}" {% if user and user.department_id == dept.id %}selected{% endif %}>
+                                    {{ dept.name }} ({{ dept.code }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                         <!-- Password -->
                         <div class="mb-3">
                             <label for="password" class="form-label">

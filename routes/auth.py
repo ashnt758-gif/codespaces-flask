@@ -7,7 +7,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated: 
         return redirect(url_for('main.dashboard'))
     
     form = LoginForm()

@@ -24,11 +24,15 @@ def init_roles_and_permissions():
             ('document_view', 'View documents'),
             ('document_create', 'Create documents'),
             ('document_edit', 'Edit own documents'),
+            ('document_edit_all', 'Edit all documents'),
             ('document_approve', 'Approve documents'),
             ('document_reject', 'Reject documents'),
+            ('document_submit', 'Submit documents for approval'),
             ('admin_access', 'Admin panel access'),
             ('role_manage', 'Manage roles'),
             ('reports_view', 'View reports'),
+            ('audit_view', 'View audit logs'),
+            ('workflow_manage', 'Manage workflows'),
         ]
         
         # Create permissions
@@ -42,27 +46,27 @@ def init_roles_and_permissions():
         
         db.session.commit()
         
-        # Define roles
+        # Define roles - ONLY 3 ROLES: admin, hod, emp
         roles_data = {
             'admin': {
                 'description': 'Administrator with full system access',
                 'permissions': [
                     'user_view', 'user_create', 'user_edit', 'user_delete',
-                    'document_view', 'document_create', 'document_edit', 'document_approve', 'document_reject',
-                    'admin_access', 'role_manage', 'reports_view'
+                    'document_view', 'document_create', 'document_edit_all', 'document_approve', 'document_reject',
+                    'document_submit', 'admin_access', 'role_manage', 'reports_view', 'audit_view', 'workflow_manage'
                 ]
             },
             'hod': {
                 'description': 'Head of Department - Can approve documents and manage team',
                 'permissions': [
                     'document_view', 'document_create', 'document_edit', 'document_approve',
-                    'document_reject', 'reports_view'
+                    'document_reject', 'document_submit', 'reports_view', 'audit_view'
                 ]
             },
-            'employee': {
+            'emp': {
                 'description': 'Regular employee - Can create and view own documents',
                 'permissions': [
-                    'document_view', 'document_create', 'document_edit', 'reports_view'
+                    'document_view', 'document_create', 'document_edit', 'document_submit', 'reports_view'
                 ]
             }
         }
@@ -104,10 +108,10 @@ def init_roles_and_permissions():
             print("✓ Admin user already exists")
         
         print("✓ Roles and permissions initialized successfully!")
-        print("\nRoles created:")
+        print("\nRoles created (3 roles only):")
         print("  - Admin (Full control)")
         print("  - HOD (Head of Department - Can approve documents)")
-        print("  - Employee (Can create and manage own documents)")
+        print("  - Emp (Employee - Can create and manage own documents)")
 
 if __name__ == '__main__':
     init_roles_and_permissions()

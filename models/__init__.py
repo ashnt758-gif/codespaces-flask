@@ -2,6 +2,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import pytz
+
+# Asia/Kolkata timezone
+ASIA_KOLKATA = pytz.timezone('Asia/Kolkata')
+
+def get_ist_now():
+    """Get current time in Asia/Kolkata timezone"""
+    return datetime.now(Asia_Kolkata)
 
 db = SQLAlchemy()
 
@@ -15,11 +23,13 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(120))
     last_name = db.Column(db.String(120))
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     roles = db.relationship('Role', secondary='user_roles', backref=db.backref('users', lazy='dynamic'))
+    department = db.relationship('Department', backref='users')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -77,6 +87,72 @@ role_permissions = db.Table('role_permissions',
     db.Column('permission_id', db.Integer, db.ForeignKey('permissions.id'))
 )
 
+class Vendor(db.Model):
+    """Vendor Master"""
+    __tablename__ = 'vendors'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    contact_person = db.Column(db.String(255))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    address = db.Column(db.Text)
+    city = db.Column(db.String(120))
+    state = db.Column(db.String(120))
+    country = db.Column(db.String(120))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    work_orders = db.relationship('WorkOrder', backref='vendor', lazy=True)
+    
+    def __repr__(self):
+        return f'<Vendor {self.name}>'
+
+class Customer(db.Model):
+    """Customer Master"""
+    __tablename__ = 'customers'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    contact_person = db.Column(db.String(255))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    address = db.Column(db.Text)
+    city = db.Column(db.String(120))
+    state = db.Column(db.String(120))
+    country = db.Column(db.String(120))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Customer {self.name}>'
+
+class Party(db.Model):
+    """Party Master"""
+    __tablename__ = 'parties'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    contact_person = db.Column(db.String(255))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    address = db.Column(db.Text)
+    city = db.Column(db.String(120))
+    state = db.Column(db.String(120))
+    country = db.Column(db.String(120))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Party {self.name}>'
+
 class WorkflowConfig(db.Model):
     """Workflow configuration for modules"""
     __tablename__ = 'workflow_configs'
@@ -117,6 +193,7 @@ class NFA(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')  # Draft, Submitted, Approved, Rejected
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
@@ -124,8 +201,13 @@ class NFA(db.Model):
     amount = db.Column(db.Float)
     approval_date = db.Column(db.DateTime)
     notes = db.Column(db.Text)
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     
     created_by = db.relationship('User', backref=db.backref('nfa_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='nfa_documents')
+    vendor = db.relationship('Vendor', backref='nfa_documents')
+    customer = db.relationship('Customer', backref='nfa_documents')
     attachments = db.relationship('Attachment', backref='nfa', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='nfa', lazy=True, cascade='all, delete-orphan')
 
@@ -139,17 +221,19 @@ class WorkOrder(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
     
-    po_number = db.Column(db.String(120))
-    vendor_name = db.Column(db.String(255))
+    wo_po_number = db.Column(db.String(120))
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'))
     amount = db.Column(db.Float)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     
     created_by = db.relationship('User', backref=db.backref('work_order_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='work_order_documents')
     attachments = db.relationship('Attachment', backref='work_order', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='work_order', lazy=True, cascade='all, delete-orphan')
 
@@ -163,6 +247,9 @@ class CostContract(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
@@ -174,6 +261,9 @@ class CostContract(db.Model):
     end_date = db.Column(db.DateTime)
     
     created_by = db.relationship('User', backref=db.backref('cost_contract_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='cost_contract_documents')
+    vendor = db.relationship('Vendor', backref='cost_contracts')
+    customer = db.relationship('Customer', backref='cost_contracts')
     attachments = db.relationship('Attachment', backref='cost_contract', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='cost_contract', lazy=True, cascade='all, delete-orphan')
 
@@ -187,6 +277,8 @@ class RevenueContract(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
@@ -198,6 +290,8 @@ class RevenueContract(db.Model):
     terms = db.Column(db.Text)
     
     created_by = db.relationship('User', backref=db.backref('revenue_contract_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='revenue_contract_documents')
+    customer = db.relationship('Customer', backref='revenue_contracts')
     attachments = db.relationship('Attachment', backref='revenue_contract', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='revenue_contract', lazy=True, cascade='all, delete-orphan')
 
@@ -211,16 +305,20 @@ class Agreement(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
+    party_id = db.Column(db.Integer, db.ForeignKey('parties.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
     
-    agreement_type = db.Column(db.String(120))
-    party_name = db.Column(db.String(255))
     effective_date = db.Column(db.DateTime)
     expiry_date = db.Column(db.DateTime)
     
     created_by = db.relationship('User', backref=db.backref('agreement_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='agreement_documents')
+    customer = db.relationship('Customer', backref='agreements')
+    party = db.relationship('Party', backref='agreements')
     attachments = db.relationship('Attachment', backref='agreement', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='agreement', lazy=True, cascade='all, delete-orphan')
 
@@ -234,6 +332,8 @@ class StatutoryDocument(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(120), default='Draft')
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    party_id = db.Column(db.Integer, db.ForeignKey('parties.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     rejected_remarks = db.Column(db.Text)
@@ -243,8 +343,25 @@ class StatutoryDocument(db.Model):
     due_date = db.Column(db.DateTime)
     
     created_by = db.relationship('User', backref=db.backref('statutory_document_created', lazy='dynamic'))
+    department = db.relationship('Department', backref='statutory_document_documents')
+    party = db.relationship('Party', backref='statutory_documents')
     attachments = db.relationship('Attachment', backref='statutory_document', lazy=True, cascade='all, delete-orphan')
     approvals = db.relationship('ApprovalHistory', backref='statutory_document', lazy=True, cascade='all, delete-orphan')
+
+class Department(db.Model):
+    """Department model for organization structure"""
+    __tablename__ = 'departments'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    status = db.Column(db.String(50), default='Active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Department {self.name}>'
 
 class Attachment(db.Model):
     """File attachment for documents"""

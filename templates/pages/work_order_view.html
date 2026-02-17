@@ -2,96 +2,215 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <h1>{{ work_order.title }}</h1>
-            <p><strong>Reference Number:</strong> {{ work_order.reference_number }}</p>
-            <p><strong>Status:</strong>
-                {% if work_order.status == 'Draft' %}
-                    <span class="badge bg-secondary">Draft</span>
-                {% elif work_order.status == 'Submitted' %}
-                    <span class="badge bg-info">Submitted</span>
-                {% elif work_order.status == 'Approved' %}
-                    <span class="badge bg-success">Approved</span>
-                {% else %}
-                    <span class="badge bg-danger">Rejected</span>
-                {% endif %}
-            </p>
-            <p><strong>Created By:</strong> {{ work_order.created_by.username }}</p>
-            <p><strong>Created Date:</strong> {{ work_order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-            
-            <h3 class="mt-4">Details</h3>
-            <p><strong>PO Number:</strong> {{ work_order.po_number or '-' }}</p>
-            <p><strong>Vendor:</strong> {{ work_order.vendor_name or '-' }}</p>
-            <p><strong>Amount:</strong> {{ work_order.amount or '-' }}</p>
-            <p><strong>Start Date:</strong> {{ work_order.start_date.strftime('%Y-%m-%d %H:%M:%S') if work_order.start_date else '-' }}</p>
-            <p><strong>End Date:</strong> {{ work_order.end_date.strftime('%Y-%m-%d %H:%M:%S') if work_order.end_date else '-' }}</p>
-            
-            <h3 class="mt-4">Description</h3>
-            <p>{{ work_order.description or '-' }}</p>
-
-            {% if work_order.rejected_remarks %}
-            <div class="alert alert-danger mt-4">
-                <strong>Rejection Remarks:</strong> {{ work_order.rejected_remarks }}
+    <!-- Document Header -->
+    <div class="doc-header">
+        <h1><i class="fas fa-file-document me-2"></i> Title: {{ work_order.title }}</h1>
+        <div class="header-meta">
+            <div class="meta-item">
+                <i class="fas fa-bar
+                
+                
+                
+                
+                
+                
+                
+                code"></i>
+                <div>
+                    <strong>Ref No:</strong>
+                    <span>{{ work_order.reference_number }}</span>
+                </div>
             </div>
-            {% endif %}
-
-            <h3 class="mt-4">Attachments</h3>
-            {% if work_order.attachments %}
-            <ul class="list-group">
-                {% for attachment in work_order.attachments %}
-                <li class="list-group-item">
-                    <a href="/uploads/{{ attachment.file_path | basename }}" target="_blank">{{ attachment.filename }}</a>
-                    <small class="text-muted">({{ attachment.uploaded_by.username }}, {{ attachment.uploaded_at.strftime('%Y-%m-%d %H:%M') }})</small>
-                    {% if attachment.is_readonly %}
-                        <span class="badge bg-warning">Read-only</span>
-                    {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>No attachments</p>
-            {% endif %}
+            <div class="meta-item">
+                <i class="fas fa-circle-notch"></i>
+                <div>
+                    <strong>Status:</strong>
+                    <span>
+                        {% if work_order.status == 'Draft' %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% elif work_order.status == 'Submitted' %}
+                            <span class="badge bg-info">Submitted</span>
+                        {% elif work_order.status == 'Approved' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% else %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-user"></i>
+                <div>
+                    <strong>Created By:</strong>
+                    <span>{{ work_order.created_by.username }}</span>
+                </div>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <div>
+                    <strong>Date:</strong>
+                    <span>{{ work_order.created_at|to_ist|default('N/A') }}</span>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Actions</h5>
-                    {% if can_edit %}
-                    <a href="{{ url_for('main.work_order_edit', id=work_order.id) }}" class="btn btn-warning btn-sm w-100 mb-2">Edit</a>
-                    {% endif %}
-                    
-                    {% if work_order.status == 'Draft' %}
-                    <form method="POST" action="{{ url_for('main.work_order_submit', id=work_order.id) }}" class="d-inline w-100">
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Submit for Approval</button>
-                    </form>
-                    {% elif work_order.status == 'Submitted' %}
-                    <a href="{{ url_for('main.work_order_approve', id=work_order.id) }}" class="btn btn-success btn-sm w-100">Approve/Reject</a>
-                    {% endif %}
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Details Section -->
+            <div class="doc-details-section">
+                <h3><i class="fas fa-info-circle"></i>Details</h3>
+                <div class="doc-details-grid">
+                    <div class="doc-detail-item">
+                        <label>WO/PO Number</label>
+                        <span>{% if work_order.wo_po_number %}{{ work_order.wo_po_number }}{% else %}<span class="empty">-</span>{% endif %}</span>
+                    </div>
+                    <div class="doc-detail-item">
+                        <label>Vendor</label>
+                        <span>{% if work_order.vendor %}{{ work_order.vendor.code }} - {{ work_order.vendor.name }}{% else %}<span class="empty">-</span>{% endif %}</span>
+                    </div>
+                    <div class="doc-detail-item">
+                        <label>Amount</label>
+                        <span>{% if work_order.amount %}{{ work_order.amount }}{% else %}<span class="empty">-</span>{% endif %}</span>
+                    </div>
+                    <div class="doc-detail-item">
+                        <label>Start Date</label>
+                        <span>{% if work_order.start_date %}{{ work_order.start_date.strftime('%Y-%m-%d') }}{% else %}<span class="empty">-</span>{% endif %}</span>
+                    </div>
+                    <div class="doc-detail-item">
+                        <label>End Date</label>
+                        <span>{% if work_order.end_date %}{{ work_order.end_date.strftime('%Y-%m-%d') }}{% else %}<span class="empty">-</span>{% endif %}</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h5 class="card-title">Approval History</h5>
-                    {% if approvals %}
-                    <ul class="list-unstyled">
-                        {% for approval in approvals %}
-                        <li class="mb-3">
-                            <strong>{{ approval.action }}</strong> by {{ approval.approved_by.username }}
-                            <br>
-                            <small class="text-muted">{{ approval.approved_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-                            {% if approval.comments %}
-                            <br>
-                            <small>{{ approval.comments }}</small>
+            <!-- Description Section -->
+            <div class="doc-details-section">
+                <h3><i class="fas fa-align-left"></i>Description</h3>
+                <p style="margin: 0; color: var(--dark); line-height: 1.6;">
+                    {{ work_order.description or '<span class="empty" style="color: var(--gray);">No description provided</span>'|safe }}
+                </p>
+            </div>
+
+            <!-- Rejection Remarks -->
+            {% if work_order.rejected_remarks %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Rejection Remarks:</strong>
+                <div style="margin-top: 0.5rem;">{{ work_order.rejected_remarks }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Attachments Section -->
+            <div class="doc-attachments">
+                <h3><i class="fas fa-paperclip"></i>Attachments</h3>
+                {% if work_order.attachments %}
+                <div>
+                    {% for attachment in work_order.attachments %}
+                    <div class="attachment-item">
+                        <a href="{{ url_for('main.download_attachment', attachment_id=attachment.id) }}">
+                            <i class="fas fa-file-download"></i>
+                            <span>{{ attachment.filename }}</span>
+                        </a>
+                        <div class="attachment-meta">
+                            <span>{{ attachment.uploaded_by.username }}</span>
+                            <span>•</span>
+                            <span>{{ attachment.uploaded_at.strftime('%d %b %Y') }}</span>
+                            {% if attachment.is_readonly %}
+                            <span class="badge bg-warning ms-2">Read-only</span>
                             {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p>No approval history</p>
-                    {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--gray); font-style: italic; margin: 0;">No attachments uploaded</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Actions Card -->
+            <div class="doc-actions">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt"></i>Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if work_order.status == 'Approved' and not current_user.has_role('admin') %}
+                        <div class="status-approved">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Approved</span>
+                        </div>
+                        {% else %}
+                            {% if can_edit %}
+                            <a href="{{ url_for('main.work_order_edit', id=work_order.id) }}" class="btn btn-warning w-100">
+                                <i class="fas fa-edit"></i>Edit Document
+                            </a>
+                            <form method="POST" action="{{ url_for('main.work_order_delete', id=work_order.id) }}" class="d-inline w-100">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to delete this document?');">
+                                    <i class="fas fa-trash"></i>Delete Document
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if work_order.status == 'Draft' %}
+                            <form method="POST" action="{{ url_for('main.work_order_submit', id=work_order.id) }}" class="w-100">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-paper-plane"></i>Submit for Approval
+                                </button>
+                            </form>
+                            {% elif work_order.status == 'Submitted' %}
+                                {% if current_user.has_role('hod') or current_user.has_permission('admin_access') %}
+                                <a href="{{ url_for('main.work_order_approval_detail', id=work_order.id) }}" class="btn btn-info w-100">
+                                    <i class="fas fa-eye"></i>View Approval
+                                </a>
+                                {% else %}
+                                <div class="status-pending">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <span>Pending Approval</span>
+                                </div>
+                                {% endif %}
+                            {% elif work_order.status == 'Rejected' and current_user.id == work_order.created_by_id %}
+                            <form method="POST" action="{{ url_for('main.work_order_submit', id=work_order.id) }}" class="w-100">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-redo"></i>Resubmit
+                                </button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Approval History Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-history"></i>Approval History</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if approvals %}
+                        <div class="approval-timeline">
+                            {% for approval in approvals %}
+                            <div class="approval-item">
+                                <strong>{{ approval.action }}</strong>
+                                <div class="approval-meta">
+                                    <i class="fas fa-user me-1"></i>{{ approval.approved_by.username }} • {{ approval.approved_at.strftime('%d %b %Y, %H:%M') }}
+                                </div>
+                                {% if approval.comments %}
+                                <div class="approval-comments">
+                                    {{ approval.comments }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p style="color: var(--gray); font-style: italic; margin: 0;">No approval history yet</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

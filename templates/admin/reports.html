@@ -1,0 +1,291 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 style="color: #1e3a8a; font-weight: 600;"><i class="fas fa-chart-bar me-2"></i>Reports</h1>
+            <p class="text-muted">View and export all documents in one place</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-success me-2" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </button>
+            <button class="btn btn-danger" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Export to PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Records</h6>
+                            <h3 style="color: #1e3a8a;">{{ stats.total_records }}</h3>
+                        </div>
+                        <i class="fas fa-file-alt fa-3x" style="color: #e5e7eb;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Approved</h6>
+                            <h3 style="color: #059669;">{{ stats.approved }}</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x" style="color: #d1fae5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Submitted</h6>
+                            <h3 style="color: #2563eb;">{{ stats.submitted }}</h3>
+                        </div>
+                        <i class="fas fa-hourglass-half fa-3x" style="color: #dbeafe;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Drafts</h6>
+                            <h3 style="color: #6b7280;">{{ stats.draft }}</h3>
+                        </div>
+                        <i class="fas fa-file fa-3x" style="color: #f3f4f6;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="doc_type" class="form-label">Document Type</label>
+                    <select id="doc_type" class="form-select" onchange="applyFilters()">
+                        <option value="all" {% if doc_type == 'all' %}selected{% endif %}>All Documents</option>
+                        <option value="nfa" {% if doc_type == 'nfa' %}selected{% endif %}>NFA</option>
+                        <option value="work_order" {% if doc_type == 'work_order' %}selected{% endif %}>Work Orders</option>
+                        <option value="cost_contract" {% if doc_type == 'cost_contract' %}selected{% endif %}>Cost Contracts</option>
+                        <option value="revenue_contract" {% if doc_type == 'revenue_contract' %}selected{% endif %}>Revenue Contracts</option>
+                        <option value="agreement" {% if doc_type == 'agreement' %}selected{% endif %}>Agreements</option>
+                        <option value="statutory_document" {% if doc_type == 'statutory_document' %}selected{% endif %}>Statutory Documents</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status</label>
+                    <select id="status" class="form-select" onchange="applyFilters()">
+                        <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="Draft" {% if status == 'Draft' %}selected{% endif %}>Draft</option>
+                        <option value="Submitted" {% if status == 'Submitted' %}selected{% endif %}>Submitted</option>
+                        <option value="Approved" {% if status == 'Approved' %}selected{% endif %}>Approved</option>
+                        <option value="Rejected" {% if status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="period" class="form-label">Period</label>
+                    <select id="period" class="form-select" onchange="handlePeriodChange()">
+                        <option value="all" {% if period == 'all' %}selected{% endif %}>All Time</option>
+                        <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                        <option value="quarter" {% if period == 'quarter' %}selected{% endif %}>This Quarter</option>
+                        <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
+                        <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-secondary w-100" onclick="resetFilters()">
+                        <i class="fas fa-redo me-2"></i>Reset Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Custom Date Range Pickers - Appears on new row when selected -->
+            <div id="custom_date_range" style="display: {% if period == 'custom' %}flex{% else %}none{% endif %}; gap: 15px; margin-top: 15px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 150px;">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="date" id="from_date" class="form-control" value="{{ from_date or '' }}">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="date" id="to_date" class="form-control" value="{{ to_date or '' }}">
+                </div>
+                <button class="btn btn-primary" onclick="applyCustomDateRange()">Apply</button>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #f3f4f6;">
+                        <tr>
+                            <th style="color: #1e3a8a; font-weight: 600;">Document Type</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Reference</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Title</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Status</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Created By</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Created Date</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Amount</th>
+                            <th style="color: #1e3a8a; font-weight: 600;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if records %}
+                            {% for record in records %}
+                            <tr>
+                                <td>
+                                    {% if record.type == 'NFA' %}
+                                        <span class="badge bg-info">{{ record.type }}</span>
+                                    {% elif record.type == 'Work Order' %}
+                                        <span class="badge bg-warning text-dark">{{ record.type }}</span>
+                                    {% elif record.type == 'Cost Contract' %}
+                                        <span class="badge bg-secondary">{{ record.type }}</span>
+                                    {% elif record.type == 'Revenue Contract' %}
+                                        <span class="badge bg-primary">{{ record.type }}</span>
+                                    {% elif record.type == 'Agreement' %}
+                                        <span class="badge bg-dark">{{ record.type }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ record.type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.reference }}</td>
+                                <td>
+                                    <strong>{{ record.title }}</strong>
+                                </td>
+                                <td>
+                                    {% if record.status == 'Approved' %}
+                                        <span class="badge bg-success">{{ record.status }}</span>
+                                    {% elif record.status == 'Submitted' %}
+                                        <span class="badge bg-info">{{ record.status }}</span>
+                                    {% elif record.status == 'Rejected' %}
+                                        <span class="badge bg-danger">{{ record.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ record.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.created_by }}</td>
+                                <td>{{ record.created_at|to_ist|default('N/A') }} IST</td>
+                                <td>
+                                    {% if record.amount %}
+                                        ₹ {{ "{:,.2f}".format(record.amount) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% if record.type == 'NFA' %}{{ url_for('main.nfa_view', id=record.id) }}{% elif record.type == 'Work Order' %}{{ url_for('main.work_order_view', id=record.id) }}{% elif record.type == 'Cost Contract' %}{{ url_for('main.cost_contract_view', id=record.id) }}{% elif record.type == 'Revenue Contract' %}{{ url_for('main.revenue_contract_view', id=record.id) }}{% elif record.type == 'Agreement' %}{{ url_for('main.agreement_view', id=record.id) }}{% else %}{{ url_for('main.statutory_document_view', id=record.id) }}{% endif %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                    No records found
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function handlePeriodChange() {
+    const period = document.getElementById('period').value;
+    const customRange = document.getElementById('custom_date_range');
+    
+    if (period === 'custom') {
+        customRange.style.display = 'flex';
+    } else {
+        customRange.style.display = 'none';
+        applyFilters();
+    }
+}
+
+function applyCustomDateRange() {
+    const fromDate = document.getElementById('from_date').value;
+    const toDate = document.getElementById('to_date').value;
+    
+    if (!fromDate || !toDate) {
+        alert('Please select both From Date and To Date');
+        return;
+    }
+    
+    if (new Date(fromDate) > new Date(toDate)) {
+        alert('From Date cannot be after To Date');
+        return;
+    }
+    
+    const doc_type = document.getElementById('doc_type').value;
+    const status = document.getElementById('status').value;
+    window.location.href = `{{ url_for('admin.reports') }}?doc_type=${doc_type}&status=${status}&period=custom&from_date=${fromDate}&to_date=${toDate}`;
+}
+
+function applyFilters() {
+    const doc_type = document.getElementById('doc_type').value;
+    const status = document.getElementById('status').value;
+    const period = document.getElementById('period').value;
+    window.location.href = `{{ url_for('admin.reports') }}?doc_type=${doc_type}&status=${status}&period=${period}`;
+}
+
+function resetFilters() {
+    window.location.href = `{{ url_for('admin.reports') }}`;
+}
+
+function exportToExcel() {
+    const doc_type = document.getElementById('doc_type').value;
+    const status = document.getElementById('status').value;
+    const period = document.getElementById('period').value;
+    let url = `{{ url_for('admin.export_reports_excel') }}?doc_type=${doc_type}&status=${status}&period=${period}`;
+    
+    if (period === 'custom') {
+        const fromDate = document.getElementById('from_date').value;
+        const toDate = document.getElementById('to_date').value;
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    
+    window.location.href = url;
+}
+
+function exportToPDF() {
+    const doc_type = document.getElementById('doc_type').value;
+    const status = document.getElementById('status').value;
+    const period = document.getElementById('period').value;
+    let url = `{{ url_for('admin.export_reports_pdf') }}?doc_type=${doc_type}&status=${status}&period=${period}`;
+    
+    if (period === 'custom') {
+        const fromDate = document.getElementById('from_date').value;
+        const toDate = document.getElementById('to_date').value;
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    
+    window.location.href = url;
+}
+</script>
+{% endblock %}

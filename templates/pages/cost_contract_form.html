@@ -11,7 +11,19 @@
             <div class="col-md-6">
                 <div class="mb-3">
                     {{ form.reference_number.label }}
-                    {{ form.reference_number(class="form-control", readonly=True) }}
+                    <div class="input-group">
+                        {% if form.reference_number.errors %}
+                            {{ form.reference_number(class="form-control is-invalid") }}
+                        {% else %}
+                            {{ form.reference_number(class="form-control") }}
+                        {% endif %}
+                        <button class="btn btn-outline-secondary" type="button" id="auto_generate_ref">Auto-gen</button>
+                    </div>
+                    {% if form.reference_number.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.reference_number.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-6">
@@ -30,14 +42,28 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    {{ form.contract_type.label }}
-                    {{ form.contract_type(class="form-control") }}
+                    {{ form.vendor_id.label }}
+                    {% if form.vendor_id.errors %}
+                        {{ form.vendor_id(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.vendor_id.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.vendor_id(class="form-control") }}
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    {{ form.vendor_name.label }}
-                    {{ form.vendor_name(class="form-control") }}
+                    {{ form.customer_id.label }}
+                    {% if form.customer_id.errors %}
+                        {{ form.customer_id(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.customer_id.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.customer_id(class="form-control") }}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -46,7 +72,28 @@
             <div class="col-md-6">
                 <div class="mb-3">
                     {{ form.contract_value.label }}
-                    {{ form.contract_value(class="form-control") }}
+                    {{ form.contract_value(class="form-control", type="number", step="0.01") }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {% set is_admin = current_user.roles | selectattr('name', 'equalto', 'admin') | list %}
+                    {{ form.department_id.label }}
+                    {% if is_admin %}
+                        {# Admin can select department #}
+                        {% if form.department_id.errors %}
+                            {{ form.department_id(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.department_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.department_id(class="form-control") }}
+                        {% endif %}
+                    {% else %}
+                        {# Non-admin: show current department as read-only #}
+                        <input type="text" class="form-control" readonly value="{% if current_user.department %}{{ current_user.department.name }} ({{ current_user.department.code }}){% else %}No Department Assigned{% endif %}">
+                        {{ form.department_id(class="d-none") }}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -55,13 +102,23 @@
             <div class="col-md-6">
                 <div class="mb-3">
                     {{ form.start_date.label }}
-                    {{ form.start_date(class="form-control", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                    <div class="input-group date" id="start_date_picker" data-target-input="nearest">
+                        {{ form.start_date(class="form-control datetimepicker-input", data_target="#start_date_picker") }}
+                        <div class="input-group-append" data-target="#start_date_picker" data-toggle="datetimepicker">
+                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
                     {{ form.end_date.label }}
-                    {{ form.end_date(class="form-control", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                    <div class="input-group date" id="end_date_picker" data-target-input="nearest">
+                        {{ form.end_date(class="form-control datetimepicker-input", data_target="#end_date_picker") }}
+                        <div class="input-group-append" data-target="#end_date_picker" data-toggle="datetimepicker">
+                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,10 +129,56 @@
         </div>
 
         <div class="mb-3">
-            {{ form.attachments.label }}
-            {{ form.attachments(class="form-control") }}
-            <small class="form-text text-muted">Allowed formats: PDF, XLSX, XLS, DOC, DOCX, TXT, JPG, PNG</small>
+            <h5><i class="fas fa-paperclip"></i> Attachments</h5>
+            {% if contract and contract.attachments %}
+            <div class="mb-3 p-3 bg-light rounded">
+                <h6>Existing Attachments:</h6>
+                <div class="list-group">
+                    {% for attachment in contract.attachments %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center attachment-row" data-attachment-id="{{ attachment.id }}" id="attachment-row-{{ attachment.id }}">
+                        <div>
+                            <i class="fas fa-file"></i> 
+                            <a href="{{ url_for('main.download_attachment', attachment_id=attachment.id) }}" target="_blank" class="attachment-link">
+                                {{ attachment.filename }}
+                            </a>
+                            <small class="text-muted ms-2 attachment-date">({{ attachment.uploaded_at.strftime('%d %b %Y') }})</small>
+                        </div>
+                        <div style="display: flex; gap: 8px;" class="attachment-buttons">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('new_attachment_input_{{ loop.index }}').click();">
+                                <i class="fas fa-upload"></i> Upload New
+                            </button>
+                            <input type="file" id="new_attachment_input_{{ loop.index }}" name="new_attachments" accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.jpg,.png" style="display: none;" onchange="uploadNewAttachment(this, '{{ contract.id }}', {{ attachment.id }});" data-attachment-id="{{ attachment.id }}">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteAttachment({{ attachment.id }});">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="mb-3">
+                {{ form.attachments(class="form-control") }}
+                {% if form.attachments.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.attachments.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Allowed formats: PDF, XLSX, XLS, DOC, DOCX, TXT, JPG, PNG<br>
+                    At least one attachment is required.
+                </small>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- Hidden fields to track attachment replacements -->
+        {% if contract and contract.attachments %}
+            {% for attachment in contract.attachments %}
+        <input type="hidden" id="old_attachment_id_{{ attachment.id }}" name="old_attachment_id_{{ attachment.id }}" value="">
+        <input type="hidden" id="new_attachment_filename_{{ attachment.id }}" name="new_attachment_filename_{{ attachment.id }}" value="">
+            {% endfor %}
+        {% endif %}
 
         <div class="mb-3">
             {{ form.submit(class="btn btn-primary") }}
@@ -83,4 +186,96 @@
         </div>
     </form>
 </div>
+
+<script>
+$(function() {
+    $('#start_date_picker').datetimepicker({
+        format: 'YYYY-MM-DD',
+        useCurrent: false
+    });
+    $('#end_date_picker').datetimepicker({
+        format: 'YYYY-MM-DD',
+        useCurrent: false
+    });
+    
+    // Handle new attachment upload
+    window.uploadNewAttachment = function(fileInput, documentId, oldAttachmentId) {
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('document_id', documentId);
+        formData.append('document_type', 'cost_contract');
+        formData.append('old_attachment_id', oldAttachmentId);
+        
+        fetch('{{ url_for("main.upload_attachment") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI to show uploaded file
+                const row = document.getElementById('attachment-row-' + oldAttachmentId);
+                if (row) {
+                    // Hide the buttons div
+                    const buttons = row.querySelector('.attachment-buttons');
+                    if (buttons) buttons.style.display = 'none';
+                    
+                    // Update the filename and date
+                    const link = row.querySelector('.attachment-link');
+                    const date = row.querySelector('.attachment-date');
+                    
+                    if (link) link.textContent = data.filename;
+                    if (date) date.textContent = '(Updated)';
+                    
+                    // Store the attachment swap info in hidden fields for form submission
+                    const oldIdField = document.getElementById('old_attachment_id_' + oldAttachmentId);
+                    const newPathField = document.getElementById('new_attachment_filename_' + oldAttachmentId);
+                    if (oldIdField) oldIdField.value = oldAttachmentId;
+                    if (newPathField) newPathField.value = data.file_path;
+                }
+            } else {
+                alert('Error uploading file: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error uploading file');
+        });
+    };
+    
+    // Handle delete attachment
+    window.deleteAttachment = function(attachmentId) {
+        if (!confirm('Delete this attachment?')) return;
+        
+        fetch('/attachment/' + attachmentId + '/delete', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error deleting attachment');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting attachment');
+        });
+    };
+    
+    // Auto-generate reference number
+    $('#auto_generate_ref').click(function(e) {
+        e.preventDefault();
+        const today = new Date();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const random = Math.floor(Math.random() * 90000) + 10000;
+        const refNum = `CostContract-${year}${month}-${random}`;
+        $('#reference_number').val(refNum);
+    });
+});
+</script>
 {% endblock %}
